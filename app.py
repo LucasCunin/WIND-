@@ -1,10 +1,11 @@
 import os
+from map import get_lon_lat, map  
 import pandas as pd
 import streamlit as st
 import base64
 
 def load_data(station):
-    file_path = os.path.join('pred', f'df_{station}_X.csv')
+    file_path = os.path.join('pred', f'df_{station}.csv') 
     df = pd.read_csv(file_path)
     return df
 
@@ -15,15 +16,16 @@ def to_csv_download_link(df, filename):
     return href
 
 def main():
-
     # Map 
-    #st.markdown('<iframe src="carte_des_stations.html" width="100%" height="600"></iframe>', unsafe_allow_html=True)
-
+    dico_lon_lat = get_lon_lat() 
+    m = map(dico_lon_lat)  
+    st.write(m)  # Affichez la carte dans Streamlit
+    
     lst_station = []
 
     for filename in os.listdir('pred'):
         # Supprimer le préfixe 'df_' et l'extension '.csv'
-        station_name = filename.replace('df_', '').replace('_X.csv', '')
+        station_name = filename.replace('df_', '').replace('.csv', '')  # Supprimez l'extension '.csv' ici
         lst_station.append(station_name)
 
     lst_station.append('Toutes les stations')
@@ -31,7 +33,7 @@ def main():
     station = st.selectbox('Station', lst_station)
 
     if station == 'Toutes les stations':
-        df = pd.concat([load_data(s) for s in lst_station[1:]])
+        df = pd.concat([load_data(s) for s in lst_station[:-1]])  # Exclure 'Toutes les stations' de la liste
     else:
         df = load_data(station)
 
@@ -40,8 +42,6 @@ def main():
     # Ajoute un bouton pour dl le df
     if st.button('Télécharger le DataFrame'):
         st.markdown(to_csv_download_link(df, f'{station}.csv'), unsafe_allow_html=True)
-
-    
 
 if __name__ == "__main__":
     main()
